@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Pulse - Track & Tweet Updates</title>
+    <!-- Google Fonts: Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+    <!-- Background Grid Effect -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+
+    <!-- Header -->
+    <header class="glass-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>BigQuery <span>Release Pulse</span></h1>
+                    <p class="subtitle">Real-time Google Cloud BigQuery Feed</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div id="connection-status" class="status-indicator online">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Connected</span>
+                </div>
+                <button id="btn-refresh" class="btn btn-primary" title="Refresh Release Notes">
+                    <svg class="icon icon-spinner" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-2.79" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="app-container">
+        <!-- Sidebar Filters -->
+        <aside class="sidebar">
+            <div class="sidebar-widget search-widget glass-card">
+                <h3>Search Feed</h3>
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                        <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Type keywords, e.g. SQL, Gemini...">
+                </div>
+            </div>
+
+            <div class="sidebar-widget categories-widget glass-card">
+                <h3>Filter by Category</h3>
+                <div class="category-filters">
+                    <button class="filter-pill active" data-category="all">
+                        <span class="pill-color" style="background: linear-gradient(135deg, #38bdf8, #818cf8)"></span>
+                        <span class="pill-name">All Updates</span>
+                        <span class="pill-count" id="count-all">-</span>
+                    </button>
+                    <button class="filter-pill" data-category="Feature">
+                        <span class="pill-color" style="background-color: #10b981"></span>
+                        <span class="pill-name">Features</span>
+                        <span class="pill-count" id="count-feature">-</span>
+                    </button>
+                    <button class="filter-pill" data-category="Announcement">
+                        <span class="pill-color" style="background-color: #0ea5e9"></span>
+                        <span class="pill-name">Announcements</span>
+                        <span class="pill-count" id="count-announcement">-</span>
+                    </button>
+                    <button class="filter-pill" data-category="Issue">
+                        <span class="pill-color" style="background-color: #f59e0b"></span>
+                        <span class="pill-name">Issues & Fixes</span>
+                        <span class="pill-count" id="count-issue">-</span>
+                    </button>
+                    <button class="filter-pill" data-category="Change">
+                        <span class="pill-color" style="background-color: #a855f7"></span>
+                        <span class="pill-name">Changes</span>
+                        <span class="pill-count" id="count-change">-</span>
+                    </button>
+                    <button class="filter-pill" data-category="Deprecation">
+                        <span class="pill-color" style="background-color: #ef4444"></span>
+                        <span class="pill-name">Deprecations</span>
+                        <span class="pill-count" id="count-deprecation">-</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sidebar-widget stats-widget glass-card">
+                <h3>Insights</h3>
+                <div class="insights-grid">
+                    <div class="insight-item">
+                        <div class="insight-label">Last Checked</div>
+                        <div class="insight-val" id="last-updated-time">Never</div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-label">Active Filter Items</div>
+                        <div class="insight-val" id="visible-count">0</div>
+                    </div>
+                </div>
+                <div class="instructions-card">
+                    <div class="tweet-tip-header">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                        <span>Tweet Pro-Tip</span>
+                    </div>
+                    <p>Highlight any text within an update description to tweet the specific selection directly!</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Feed Section -->
+        <section class="feed-section">
+            <!-- Loader State -->
+            <div id="feed-loader" class="feed-state-indicator">
+                <div class="loader-spinner"></div>
+                <p>Fetching latest release notes from Google...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="feed-empty" class="feed-state-indicator hidden">
+                <div class="empty-icon">📂</div>
+                <h3>No Release Notes Found</h3>
+                <p>Try clearing your search filters or force a refresh.</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="feed-error" class="feed-state-indicator hidden">
+                <div class="error-icon">⚠️</div>
+                <h3>Failed to Load Feed</h3>
+                <p id="error-message">Unknown error occurred.</p>
+                <button id="btn-retry" class="btn btn-secondary">Retry Fetch</button>
+            </div>
+
+            <!-- Timeline Flow -->
+            <div id="timeline-flow" class="timeline-container hidden">
+                <!-- Javascript will populate cards here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Tweet Popover for Text Selection -->
+    <div id="tweet-popover" class="tweet-popover hidden">
+        <button id="btn-tweet-selection" title="Tweet Selection">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            <span>Tweet selection</span>
+        </button>
+        <div class="popover-arrow"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
